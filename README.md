@@ -34,7 +34,7 @@ Settings are in `com.osmar.CharmTooth.cfg` inside `BepInEx/config`, section `Cha
 - `EatAtFullHealth` (default `0`, 0 or 1): 1 lets you eat food at full health (it is consumed with nothing healed).
 - `FoodNames` (local, read at game start): comma separated list of the valuables that count as food, by their internal names (for example `Valuable Museum Toast`).
 
-Section `Debug`: `DebugMode` (default `false`) places a Tooth on the floor in front of you when a level starts (host or singleplayer) and writes extra log lines. For testing.
+Section `Debug`: `DebugMode` (default `false`) places a Tooth on the floor in front of you when a level starts (host or singleplayer) and writes extra log lines. For testing. `SpawnNow` (default `false`, needs `DebugMode`): set it to `true` while a level is running to place one right away; it switches itself back off.
 
 ## Issues & Bug Reports
 The official way to report issues, suggest improvements, or submit feedback is by opening an issue on the official GitHub repository:
