@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- Runtime hygiene pass: no static game references, no scene-wide search, level state cleared when the level ends, fewer allocations and less per-frame work. No behaviour change.
+
 ### Added
 - Hearty Bite: while the Tooth is pocketed, pressing E with a food valuable in hand eats it (the host destroys it) and heals 1 HP per $100 of its value; 20% wear per bite.
 - Settings `HealPerHundredDollars`, `EatAtFullHealth` and the local `FoodNames` list.

@@ -43,3 +43,13 @@ Provided by CharmCore: the `Debug.DebugMode` setting (off by default) places the
 - Looked up by exact prefab name; a game update that renames the prefab needs a mod update. The same goes for the food names.
 - E may also be used by other things (other mods, an item the player holds); the bite triggers only with a food valuable in hand.
 - Not verified in game: the E press while holding, the host release plus destroy of a held valuable for a remote client, and the heal effect.
+
+## Runtime hygiene
+
+Checked against `RepoKit/references/runtime-hygiene.md`, item by item (not verified in game; build and unit tests only).
+
+1. Lifetime of references: fixed. The static `FoodHost.Pending` dictionary (held `PhysGrabObject`s) is removed. Alone, the host now resolves the key by comparing it with the sender's held valuable (the request is only valid for the held one anyway); in multiplayer it uses `PhotonView.Find`. The recently-eaten state moved from the `HeartyBite` component to `ToothCharm.Recent` (ids and times only) and is cleared in `OnDeactivated` and `OnLevelEnded`.
+2. Work frequency: `Update` returns at once while the charm is inactive, and the "recently eaten" prune now runs only on an E press instead of every frame. ok otherwise (no scans).
+3. Allocations: fixed. `RecentKeys.Prune` reuses a buffer instead of allocating a list. Debug lines that interpolate strings are guarded with a debug-mode check. No LINQ, `Find...` or new collections in per-frame code.
+4. UI: not applicable, this mod touches no UI.
+5. Patches: not applicable, this mod has no Harmony patches.

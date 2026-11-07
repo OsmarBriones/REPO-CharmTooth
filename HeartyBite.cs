@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using CharmTooth.Domain;
 using CharmTooth.Net;
 using UnityEngine;
@@ -14,9 +13,6 @@ namespace CharmTooth
 	{
 		/// <summary>How long a valuable stays on the "already eaten" list, so a double press cannot heal twice.</summary>
 		private const float EatenMemorySeconds = 5f;
-
-		private readonly Dictionary<int, float> eaten = new Dictionary<int, float>();
-		private readonly List<int> expired = new List<int>();
 
 		internal ToothCharm Charm { get; set; } = null!;
 
@@ -40,9 +36,10 @@ namespace CharmTooth
 				return;
 			}
 
+			bool debug = Charm.DebugMode;
 			if (controller.InputDisableTimer > 0f || avatar.isDisabled)
 			{
-				Charm.LogDebug("Hearty Bite: E ignored, input is disabled or the player is dead");
+				if (debug) Charm.LogDebug("Hearty Bite: E ignored, input is disabled or the player is dead");
 				return;
 			}
 
@@ -55,65 +52,45 @@ namespace CharmTooth
 			ValuableObject? valuable = held.GetComponent<ValuableObject>();
 			if (valuable == null || !FoodList.IsFood(Charm.Foods, held.name))
 			{
-				Charm.LogDebug($"Hearty Bite: E pressed holding {held.name}, which is not food");
+				if (debug) Charm.LogDebug($"Hearty Bite: E pressed holding {held.name}, which is not food");
 				return;
 			}
 
 			int key = FoodHost.KeyOf(held);
-			ForgetOldBites();
-			if (eaten.ContainsKey(key))
+			Charm.Recent.Prune(Time.time);
+			if (Charm.Recent.Contains(key, Time.time))
 			{
-				Charm.LogDebug($"Hearty Bite: {held.name} (key {key}) is already being eaten");
+				if (debug) Charm.LogDebug($"Hearty Bite: {held.name} (key {key}) is already being eaten");
 				return;
 			}
 
 			PlayerHealth health = avatar.playerHealth;
 			if (!HealMath.MayEat(health.health, health.maxHealth, Charm.EatAtFullHealth.Value >= 0.5f))
 			{
-				Charm.LogDebug($"Hearty Bite: health is full ({health.health}/{health.maxHealth}), the food is kept");
+				if (debug) Charm.LogDebug($"Hearty Bite: health is full ({health.health}/{health.maxHealth}), the food is kept");
 				return;
 			}
 
 			int amount = HealMath.HealAmount(valuable.dollarValueCurrent, Charm.HealPerHundredDollars.Value);
 			if (amount <= 0)
 			{
-				Charm.LogDebug($"Hearty Bite: {held.name} worth {valuable.dollarValueCurrent:0} would heal nothing, the food is kept");
+				if (debug) Charm.LogDebug($"Hearty Bite: {held.name} worth {valuable.dollarValueCurrent:0} would heal nothing, the food is kept");
 				return;
 			}
 
 			if (!Charm.IsReady)
 			{
-				Charm.LogDebug("Hearty Bite: the Tooth is not ready");
+				if (debug) Charm.LogDebug("Hearty Bite: the Tooth is not ready");
 				return;
 			}
 
-			eaten[key] = Time.time + EatenMemorySeconds;
-			Charm.LogDebug($"Hearty Bite: eating {held.name} (key {key}, value {valuable.dollarValueCurrent:0}), healing {amount} ({health.health}/{health.maxHealth})");
+			Charm.Recent.TryAdd(key, Time.time, EatenMemorySeconds);
+			if (debug) Charm.LogDebug($"Hearty Bite: eating {held.name} (key {key}, value {valuable.dollarValueCurrent:0}), healing {amount} ({health.health}/{health.maxHealth})");
 
 			// Order matters: the request goes out while the Tooth is still active; the wear that follows may break it.
-			FoodHost.Remember(key, held);
 			Charm.SendToHost(ToothCharm.EatAction, key);
-			FoodHost.Forget(key);
 			Charm.TryUse();
 			health.Heal(amount, true);
-		}
-
-		/// <summary>Drops the entries of valuables eaten long ago.</summary>
-		private void ForgetOldBites()
-		{
-			expired.Clear();
-			foreach (KeyValuePair<int, float> entry in eaten)
-			{
-				if (entry.Value <= Time.time)
-				{
-					expired.Add(entry.Key);
-				}
-			}
-
-			foreach (int key in expired)
-			{
-				eaten.Remove(key);
-			}
 		}
 	}
 }

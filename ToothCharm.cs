@@ -29,6 +29,19 @@ namespace CharmTooth
 		/// <summary>Prefab names that count as food; read once at startup from the config file.</summary>
 		internal HashSet<string> Foods { get; set; } = FoodList.Parse(FoodList.DefaultNames);
 
+		/// <summary>Valuables the local player has just eaten (short-lived), so a second E press cannot heal twice.</summary>
+		internal RecentKeys Recent { get; } = new RecentKeys();
+
+		protected override void OnDeactivated()
+		{
+			Recent.Clear();
+		}
+
+		protected override void OnLevelEnded()
+		{
+			Recent.Clear();
+		}
+
 		protected override void OnHostRequest(PlayerAvatar sender, string action, object[] args)
 		{
 			if (action == EatAction)

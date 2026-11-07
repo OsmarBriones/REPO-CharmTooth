@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using CharmTooth.Domain;
 using Photon.Pun;
 using Pockets.Api;
@@ -13,28 +12,17 @@ namespace CharmTooth.Net
 	/// </summary>
 	internal static class FoodHost
 	{
-		/// <summary>Valuables the owner is eating right now, by key. Used alone (and as host) where the key cannot be looked up through Photon.</summary>
-		private static readonly Dictionary<int, PhysGrabObject> Pending = new Dictionary<int, PhysGrabObject>();
-
 		/// <summary>Opaque key of a valuable: the Photon view id in multiplayer, the Unity instance id alone (where every view id is 0).</summary>
 		internal static int KeyOf(PhysGrabObject grabObject)
 		{
 			return SemiFunc.IsMultiplayer() ? grabObject.photonView.ViewID : grabObject.gameObject.GetInstanceID();
 		}
 
-		/// <summary>Owner side: remembers the valuable so a request handled on this same machine can find it.</summary>
-		internal static void Remember(int key, PhysGrabObject grabObject)
-		{
-			Pending[key] = grabObject;
-		}
-
-		/// <summary>Owner side: forgets a remembered valuable once the request has been handled.</summary>
-		internal static void Forget(int key)
-		{
-			Pending.Remove(key);
-		}
-
-		private static PhysGrabObject? Resolve(int key)
+		/// <summary>
+		/// Finds the valuable behind a key without holding any game object statically. In multiplayer the key is a Photon view id.
+		/// Alone it is an instance id, and the only valuable the request may concern is the one the sender is holding, so that one is compared.
+		/// </summary>
+		private static PhysGrabObject? Resolve(PlayerAvatar sender, int key)
 		{
 			if (SemiFunc.IsMultiplayer())
 			{
@@ -42,7 +30,9 @@ namespace CharmTooth.Net
 				return view != null ? view.GetComponent<PhysGrabObject>() : null;
 			}
 
-			return Pending.TryGetValue(key, out PhysGrabObject? found) && found != null ? found : null;
+			PhysGrabber? holder = sender.physGrabber;
+			PhysGrabObject? held = holder != null && holder.grabbed ? holder.grabbedPhysGrabObject : null;
+			return held != null && held.gameObject.GetInstanceID() == key ? held : null;
 		}
 
 		/// <summary>Runs on the host (or alone). Validates the request and destroys the eaten valuable.</summary>
@@ -54,7 +44,7 @@ namespace CharmTooth.Net
 				return;
 			}
 
-			PhysGrabObject? grabObject = Resolve(key);
+			PhysGrabObject? grabObject = Resolve(sender, key);
 			if (grabObject == null)
 			{
 				charm.LogDebug($"Host: eat request for key {key} ignored, the valuable was not found");
