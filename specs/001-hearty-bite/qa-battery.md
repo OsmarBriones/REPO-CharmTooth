@@ -8,16 +8,23 @@ Set `DebugMode = true` in the `Debug` section of `BepInEx/config/com.osmar.Charm
 ## Single player
 - [ ] Log shows `Charm registered: Tooth - Hearty Bite` and `CharmTooth 1.0.0 loaded!`.
 - [ ] Store the valuable in a slot: the slot shows its picture and value.
-- [ ] TODO: trigger the power and check the effect, the wear on the valuable and the cooldown veil on the slot.
+- [ ] Hold a food valuable (the pills are a good test) while the Tooth is pocketed and health is below full; press E: the food vanishes, health rises by 1 per $100 of its value (at least 1), the Tooth loses about 20% of its value, the slot shows the new value.
+- [ ] Press E twice quickly: the heal happens once.
+- [ ] At full health, press E holding food: nothing happens, the food stays. With `EatAtFullHealth = 1` it is eaten with no heal.
+- [ ] Press E holding a non-food valuable: nothing happens.
+- [ ] Without the Tooth in the pocket, E on food does nothing.
+- [ ] Add a name to `FoodNames`: after a restart that valuable can be eaten. A name in a different case or with `(Clone)` also matches.
+- [ ] `HealPerHundredDollars = 0`: food is not eaten. `= 25`: a $400 food heals up to full.
 - [ ] Take the valuable out: the power stops.
 - [ ] Use it until the valuable breaks: the slot empties, the power stops, no errors in the log.
 
 ## Settings
-- [ ] `CooldownSeconds = 0`: no veil, no pause. `WearPercent = 0`: no wear.
+- [ ] `WearPercent = 0`: no wear on the Tooth.
 - [ ] Charm `Enabled = false`: no effect and no wear. CharmCore `Enabled = false`: nothing works.
 
 ## Multiplayer (host and client)
-- [ ] The effect works on the client, the value drops on both machines.
+- [ ] The effect works on the client: the food disappears on both machines, the client heals, the Tooth's value drops on both. The client's grab is released cleanly and the log has no errors.
+- [ ] The host eating works the same. A client without the Tooth cannot eat.
 - [ ] Host settings override the client's.
 - [ ] Client leaves and rejoins: no stuck veil.
 

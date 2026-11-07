@@ -1,5 +1,6 @@
 using BepInEx;
 using CharmCore.Api;
+using CharmTooth.Domain;
 using UnityEngine;
 
 namespace CharmTooth
@@ -26,6 +27,11 @@ namespace CharmTooth
 			// Registering binds Enabled, WearPercent, CooldownSeconds and the Debug section (DebugMode) in this mod's config file.
 			ToothCharm charm = new ToothCharm();
 			CharmsApi.Register(charm, Config);
+
+			// The food list is a name allowlist read once at startup (the game has no food flag).
+			string foodNames = Config.Bind<string>("Charm.Tooth", "FoodNames", FoodList.DefaultNames, "Comma separated prefab names of the valuables that count as food, matched without regard to capitals and ignoring '(Clone)'. Read when the game starts; local setting.").Value;
+			charm.Foods = FoodList.Parse(foodNames);
+
 			this.gameObject.AddComponent<HeartyBite>().Charm = charm;
 
 			Logger.LogInfo($"{PluginName} {PluginVersion} loaded!");

@@ -30,9 +30,40 @@ public class GameContractTests
 	[TestMethod]
 	public void Valuable_HasTheValueFields()
 	{
-		// TODO: add one RequireField / RequireMethod line for every game member this charm's effect reads, writes or patches,
-		// so a game update that renames or removes one fails here with a clear message.
 		RequireField("ValuableObject", "dollarValueCurrent");
+	}
+
+	[TestMethod]
+	public void Input_HasTheInteractKeyReader()
+	{
+		// HeartyBite polls SemiFunc.InputDown(InputKey.Interact).
+		RequireMethod("SemiFunc", "InputDown", 1);
+		RequireField("PlayerController", "InputDisableTimer");
+	}
+
+	[TestMethod]
+	public void Grabber_HasTheHeldObjectMembers()
+	{
+		RequireField("PhysGrabber", "instance");
+		RequireField("PhysGrabber", "grabbed");
+		RequireField("PhysGrabber", "grabbedPhysGrabObject");
+		RequireMethod("PhysGrabber", "OverrideGrabRelease", 2);
+		RequireField("PhysGrabObject", "playerGrabbing");
+		RequireField("PhysGrabObject", "dead");
+		RequireField("PhysGrabObject", "photonView");
+		RequireMethod("PhysGrabObject", "DestroyPhysGrabObject", 0);
+	}
+
+	[TestMethod]
+	public void Player_HasTheHealthMembers()
+	{
+		RequireField("PlayerAvatar", "instance");
+		RequireField("PlayerAvatar", "playerHealth");
+		RequireField("PlayerAvatar", "physGrabber");
+		RequireField("PlayerAvatar", "isDisabled");
+		RequireField("PlayerHealth", "health");
+		RequireField("PlayerHealth", "maxHealth");
+		RequireMethod("PlayerHealth", "Heal", 2);
 	}
 
 	// ---- Helpers ----
