@@ -1,20 +1,18 @@
 using BepInEx;
-using BepInEx.Logging;
-using HarmonyLib;
+using CharmCore.Api;
 using UnityEngine;
 
 namespace CharmTooth
 {
 	[BepInPlugin(PluginGuid, PluginName, PluginVersion)]
+	[BepInDependency("com.osmar.Pockets", BepInDependency.DependencyFlags.HardDependency)]
+	[BepInDependency("com.osmar.CharmCore", BepInDependency.DependencyFlags.HardDependency)]
 	public class CharmToothPlugin : BaseUnityPlugin
 	{
-		// Se reemplaza com.osmar por el parámetro AuthorId del template.json
-		// y CharmTooth por el nombre del proyecto (sourceName).
 		public const string PluginGuid = "com.osmar.CharmTooth";
 		public const string PluginName = "CharmTooth";
 		public const string PluginVersion = "1.0.0";
 
-		internal Harmony? Harmony { get; set; }
 		internal static new BepInEx.Logging.ManualLogSource Logger { get; private set; } = null!;
 
 		private void Awake()
@@ -25,17 +23,12 @@ namespace CharmTooth
 			this.gameObject.transform.parent = null;
 			this.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
-			ConfigurationController.Initialize(this.Config);
-
-			Harmony = new Harmony(Info.Metadata.GUID);
-			Harmony.PatchAll();
+			// Registering binds Enabled, WearPercent, CooldownSeconds and the Debug section (DebugMode) in this mod's config file.
+			ToothCharm charm = new ToothCharm();
+			CharmsApi.Register(charm, Config);
+			this.gameObject.AddComponent<HeartyBite>().Charm = charm;
 
 			Logger.LogInfo($"{PluginName} {PluginVersion} loaded!");
-		}
-
-		internal void Unpatch()
-		{
-			Harmony?.UnpatchSelf();
 		}
 	}
 }
